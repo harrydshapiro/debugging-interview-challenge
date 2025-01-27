@@ -2,7 +2,7 @@
   "name": "node",
   "version": "0.0.0",
   "scripts": {
-    "dev": "NODE_ENV=development ts-node ./src",
+    "dev": "NODE_ENV=development ts-node -r tsconfig-paths/register ./src",
     "test": "jest"
   },
   "engines": {
