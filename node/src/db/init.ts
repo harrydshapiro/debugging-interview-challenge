@@ -72,5 +72,8 @@ export async function initializeDb () {
         ('Shoes', 'A pair of running shoes', 79.99),
         ('Shorts', 'A pair of athletic shorts', 24.99),
         ('Dress', 'A summer dress', 39.99);
+
+        INSERT INTO customers (first_name, last_name, paypal_id, address) VALUES 
+        ('John', 'Doe', 'paypal-user-id-john-doe', '123 Main St, Anytown, USA');
     `)
 }
