@@ -1,7 +1,7 @@
 import { AsyncDatabase } from "promised-sqlite3";
 
 export function getDb () {
-    return AsyncDatabase.open("./db.sqlite");
+    return AsyncDatabase.open(process.env.DB_FILE_NAME || "db.sqlite");
 }
 
 export async function initializeDb () {

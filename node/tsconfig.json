@@ -18,9 +18,7 @@
     "spec/**/*.ts",
     "config.ts",
     "scripts",
-    "eslint.config.ts"
-  ],
-  "exclude": [
-    "src/public/*"
+    "eslint.config.ts",
+    "test-setup/index.ts"
   ]
 }

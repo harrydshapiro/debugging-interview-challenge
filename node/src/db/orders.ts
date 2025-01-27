@@ -1,8 +1,8 @@
-import { DBOrder, OrderStatus } from "../models/Order";
+import { DBOrder, OrderStatus } from "@src/models/Order";
 import { getDb } from "./init";
-import { DBOrderItem } from "../models/OrderItem";
-import { DBInventoryItem } from "../models/InventoryItem";
-import { DBPromotion } from "../models/Promotion";
+import { DBOrderItem } from "@src/models/OrderItem";
+import { DBInventoryItem } from "@src/models/InventoryItem";
+import { DBPromotion } from "@src/models/Promotion";
 import { getNow } from "@src/utils/time";
 
 export async function createDBOrder ({ created_at, customer_id }: Omit<DBOrder, 'id'>): Promise<DBOrder> {

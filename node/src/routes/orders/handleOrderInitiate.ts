@@ -1,8 +1,8 @@
-import { Invoice } from '../../models/Invoice';
-import { initiateOrder } from '../../services/orders';
+import { Invoice } from '@src/models/Invoice';
+import { initiateOrder } from '@src/services/orders';
 import { Request, Response } from 'express';
-import { InventoryItem } from '../../models/InventoryItem';
-import { Customer } from '../../models/Customer';
+import { InventoryItem } from '@src/models/InventoryItem';
+import { Customer } from '@src/models/Customer';
 
 export async function handleOrderInitiate(
     req: Request<{}, {}, { itemIds: InventoryItem['id'][], customerId: Customer['id'] }>,
