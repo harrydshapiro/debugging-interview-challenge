@@ -6,6 +6,7 @@ import { mapDBInventoryItemToInventoryItem } from "@src/models/InventoryItem";
 import { chargePaypalAccount } from "./payment";
 import { getCustomer } from "@src/db/customers";
 import { now } from "@src/utils/time";
+import Bottleneck from "bottleneck";
 
 export async function initiateOrder (customerId: number, itemIds: number[]): 
     Promise<{
@@ -14,10 +15,10 @@ export async function initiateOrder (customerId: number, itemIds: number[]):
         invoice: Invoice 
     }> {
     const dbOrder = await createDBOrder({ created_at: now(), customer_id: customerId, status: 'PENDING' });
-    const order = mapDBOrderToOrder(dbOrder)
+    const order = mapDBOrderToOrder(dbOrder);
     
-    const dbOrderItems = await createDBOrderItems(itemIds.map((id) => ({ item_id: id, order_id: dbOrder.id })))
-    const orderItems = dbOrderItems.map(mapDBOrderItemToOrderItem)
+    const dbOrderItems = await createDBOrderItems(itemIds.map((id) => ({ item_id: id, order_id: dbOrder.id })));
+    const orderItems = dbOrderItems.map(mapDBOrderItemToOrderItem);
     
     const invoice = await createInvoice(order.id, customerId)
 
@@ -47,15 +48,23 @@ export async function confirmOrder(orderId: number) {
     return paymentResult.success
 }
 
-async function createInvoice (orderId: number, customerId: number): Promise<Invoice> {
+/**
+ * Determines the total cost of an order, as well as its individual line items.
+ * Promotion is applied to the cost of the items prior to shipping + tax.
+ */
+export async function createInvoice (orderId: number, customerId: number): Promise<Invoice> {
+    const order = await getDBOrderById(orderId)
+    if (!order) {
+        throw new Error("Cannot create invoice for missing order")
+    }
     const inventoryItems = (await getAllInventoryItemsInOrder(orderId)).map(mapDBInventoryItemToInventoryItem)
     const totalInvetoryItemsCost = roundToHundrethsPlace(inventoryItems.reduce<number>((acc, curr) => acc += curr.price, 0))  ;
 
     const shipping = await getShipping(customerId)
     const tax = await getSalesTax(customerId)
-    const activePromotion = await getActivePromotion();
-    const promotionDiscount = activePromotion?.percentage_off || 0.2;
-    const total = roundToHundrethsPlace(totalInvetoryItemsCost + shipping + tax - (totalInvetoryItemsCost * promotionDiscount));
+    const activePromotion = await getActivePromotion(order.created_at);
+    const promotionDiscount = activePromotion?.percentage_off || 0;
+    const total = roundToHundrethsPlace(totalInvetoryItemsCost + shipping + tax - (totalInvetoryItemsCost - promotionDiscount));
 
     return {
         shipping,
@@ -66,9 +75,15 @@ async function createInvoice (orderId: number, customerId: number): Promise<Invo
     }
 }
 
+// In-Memory rate limiter
+const shippingApiRateLimiter = new Bottleneck({
+    minTime: 100, // Rate limits to 10 per second
+})
+
 function getShipping (customerId: number): Promise<number> {
     // Imagine we hit some USPS API
-    return Promise.resolve(10);
+    // "schedule" adds a job to the rate limiter
+    return shippingApiRateLimiter.schedule(() => Promise.resolve(10))
 }
 
 function getSalesTax (customerId: number): Promise<number> {

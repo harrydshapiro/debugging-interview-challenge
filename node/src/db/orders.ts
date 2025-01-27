@@ -35,10 +35,10 @@ export async function getAllInventoryItemsInOrder (orderId: number): Promise<DBI
  * hasn't ended, and hasn't hit its max qualifying orders. If there are multiple
  * promotions active, the one with the smallest discount % is preferred.
  */
-export async function getActivePromotion (): Promise<DBPromotion | null> {
+export async function getActivePromotion (orderDate: number): Promise<DBPromotion | null> {
     const db = await getDb();
 
-    const [activePromotion] = await db.all<DBPromotion>(`SELECT * FROM promotions WHERE starts_at < ${getNow()} AND ends_at > ${getNow()} ORDER BY percentage_off ASC LIMIT 1`)
+    const [activePromotion] = await db.all<DBPromotion>(`SELECT * FROM promotions WHERE starts_at < ${orderDate} AND ends_at > ${orderDate} ORDER BY percentage_off ASC LIMIT 1`)
 
     if (!activePromotion) {
         return null

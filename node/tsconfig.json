@@ -19,6 +19,6 @@
     "config.ts",
     "scripts",
     "eslint.config.ts",
-    "test-setup/index.ts"
+    "test/setup.ts"
   ]
 }
