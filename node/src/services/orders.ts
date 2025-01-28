@@ -7,6 +7,7 @@ import { chargePaypalAccount } from "./payment";
 import { getCustomer } from "@src/db/customers";
 import { now } from "@src/utils/time";
 import Bottleneck from "bottleneck";
+import { exponentialBackoff } from "@src/utils/exponentialBackoff";
 
 export async function initiateOrder (customerId: number, itemIds: number[]): 
     Promise<{
@@ -83,7 +84,7 @@ const shippingApiRateLimiter = new Bottleneck({
 function getShipping (customerId: number): Promise<number> {
     // Imagine we hit some USPS API
     // "schedule" adds a job to the rate limiter
-    return shippingApiRateLimiter.schedule(() => Promise.resolve(10))
+    return exponentialBackoff(() => shippingApiRateLimiter.schedule(() => Promise.resolve(10)))
 }
 
 function getSalesTax (customerId: number): Promise<number> {
